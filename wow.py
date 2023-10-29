@@ -17,7 +17,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
-import seaborn as sns
+
 
 
 
@@ -83,15 +83,15 @@ def train_image():
     print(labels_test)
     cm = confusion_matrix(labels_test, actual)
  
-    sns.heatmap(cm, 
-            annot=True,
-            fmt='g', 
-            xticklabels=['Gas','No Gas'],
-            yticklabels=['Gas','No Gas'])
-    plt.ylabel('Prediction',fontsize=13)
-    plt.xlabel('Actual',fontsize=13)
-    plt.title('Confusion Matrix',fontsize=17)
-    plt.show()
+    # sns.heatmap(cm, 
+    #         annot=True,
+    #         fmt='g', 
+    #         xticklabels=['Gas','No Gas'],
+    #         yticklabels=['Gas','No Gas'])
+    # plt.ylabel('Prediction',fontsize=13)
+    # plt.xlabel('Actual',fontsize=13)
+    # plt.title('Confusion Matrix',fontsize=17)
+    # plt.show()
     precision = precision_score(labels_test, actual)
     print('Precision: %f' % precision)
     recall = recall_score(labels_test, actual)
@@ -101,16 +101,32 @@ def train_image():
 
 
 def image_test():
-    img = cv2.imread('/Users/wzhang/Downloads/619_Mixture.png')
-    #plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    resize = tf.image.resize(img,(256,256))
-    #plt.imshow(resize.numpy().astype(int))
-    yhat = model.predict(np.expand_dims(resize/255,0))
-
-    if(yhat>0.5):
-        return 0
-    else:
-        return 1
+    data_dir = '/Users/wzhang/Downloads/No Gas'
+    labels_dir = '/Users/wzhang/Downloads/ImageData'
+    imagedata = sorted(os.listdir(sorted(data_dir)))
+    labels = pd.read_csv(labels_dir)
+    X_data = []
+    for image in imagedata:
+        img = mpimg.imread('/Users/wzhang/Downloads/No Gas/'+image)
+        img = img.reshape(320,320,9)
+        img = img/255.0
+        X_data.append(img)
+    images = np.array(X_data)
+    print(model.evaluate(images,labels))
+    performance = model.predict(images)
+    performance.round()
+    actual = []
+    for value in performance: 
+        if(value>=0.5):
+            actual.append(1)
+        else:
+            actual.append(0)
+    precision = precision_score(labels, actual)
+    print('Precision: %f' % precision)
+    recall = recall_score(labels, actual)
+    print('Recall: %f' % recall)
+    f1 = f1_score(labels, actual)
+    print('F1 score: %f' % f1)
 
 gasmodel = keras.Sequential([keras.layers.Dense(128, activation = 'relu', input_shape=(2,)),
                           keras.layers.Dense(20, activation=tf.nn.relu),
@@ -164,13 +180,13 @@ def train_gas():
             actual.append(0)
     print(actual)
     print(labels_test)
-    cm = confusion_matrix(labels_test, actual)
+    # cm = confusion_matrix(labels_test, actual)
  
-    sns.heatmap(cm, 
-            annot=True,
-            fmt='g', 
-            xticklabels=['Gas','No Gas'],
-            yticklabels=['Gas','No Gas'])
+    # sns.heatmap(cm, 
+    #         annot=True,
+    #         fmt='g', 
+    #         xticklabels=['Gas','No Gas'],
+    #         yticklabels=['Gas','No Gas'])
     plt.ylabel('Prediction',fontsize=13)
     plt.xlabel('Actual',fontsize=13)
     plt.title('Confusion Matrix',fontsize=17)
@@ -182,14 +198,37 @@ def train_gas():
     f1 = f1_score(labels_test, actual)
     print('F1 score: %f' % f1)
 
-def predict_gas(mq2, mq7):
-    X=pd.DataFrame({"MQ2":[mq2],"MQ7":[mq7]})
-    yhat = gasmodel.predict(X)  
-    print(yhat)      
-    if(yhat[1]>0.90):
-        print("Leak Detected")
-    else:
-        print("No Leak")
+def predict_gas():
+    data = pd.read_csv("/Users/wzhang/Downloads/Gas Sensors Data - Sheet1 (3).csv")
+    labels = data['Gas']
+    labels = np.array(labels)
+    features = data.drop(columns=['Gas'])
+    print(labels)
+    print(features)
+    features_norm = (features - np.min(features)) / (np.max(features) - np.min(features))
+    print(gasmodel.evaluate(features_norm,labels))
+    performance = gasmodel.predict(features_norm)
+    performance.round()
+    actual = []
+    for value in performance: 
+        if(value>=0.5):
+            actual.append(1)
+        else:
+            actual.append(0)
+    print(actual)
+    precision = precision_score(labels,actual)
+    print('Precision: %f' % precision)
+    recall = recall_score(labels,actual)
+    print('Recall: %f' % recall)
+    f1 = f1_score(labels, actual)
+    print('F1 score: %f' % f1)
+    for value in performance: 
+        if(value>=0.5):
+            print("Leak Detected")
+        else:
+            print("No Leak")
+    print(actual)
+
 
 finalmodel = Model()
 def fusion(cnn, ann):
@@ -201,5 +240,6 @@ def fusion(cnn, ann):
 
 
 train_image()
+predict_image()
 
 
