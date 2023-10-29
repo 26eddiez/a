@@ -240,6 +240,6 @@ def fusion(cnn, ann):
 
 
 train_image()
-predict_image()
+image_test()
 
 
