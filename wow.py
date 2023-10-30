@@ -101,9 +101,9 @@ def train_image():
 
 
 def image_test():
-    data_dir = '/Users/wzhang/Downloads/No Gas'
-    labels_dir = '/Users/wzhang/Downloads/ImageData'
-    imagedata = sorted(os.listdir(sorted(data_dir)))
+    data_dir = "/Users/wzhang/Downloads/No Gas"
+    labels_dir = "/Users/wzhang/Downloads/ImageData"
+    imagedata = sorted(os.listdir(data_dir))
     labels = pd.read_csv(labels_dir)
     X_data = []
     for image in imagedata:
@@ -129,7 +129,8 @@ def image_test():
     print('F1 score: %f' % f1)
 
 gasmodel = keras.Sequential([keras.layers.Dense(128, activation = 'relu', input_shape=(2,)),
-                          keras.layers.Dense(20, activation=tf.nn.relu),
+                          keras.layers.Dense(64, activation=tf.nn.relu),
+                          keras.layers.Dense(16, activation=tf.nn.relu),
                          keras.layers.Dense(1,activation='sigmoid')])
 
 def train_gas():
@@ -137,6 +138,7 @@ def train_gas():
     labels = data['Gas']
     features = data.drop(columns=['Gas'])
     features_norm = (features - np.min(features)) / (np.max(features) - np.min(features))
+    print(features_norm)
     features_train, features_test, labels_train, labels_test = train_test_split(features_norm, labels, test_size=0.2)
     features_train, features_validation, labels_train, labels_validation = train_test_split(features_train, labels_train, test_size=0.2)
     gasmodel.compile(optimizer='adam',
@@ -199,15 +201,17 @@ def train_gas():
     print('F1 score: %f' % f1)
 
 def predict_gas():
-    data = pd.read_csv("/Users/wzhang/Downloads/Gas Sensors Data - Sheet1 (3).csv")
+    data = pd.read_csv("/Users/wzhang/Downloads/Gas Sensors Data - No Gas (3).csv")
+    print(len(data))
     labels = data['Gas']
-    labels = np.array(labels)
     features = data.drop(columns=['Gas'])
+    features_norm = (features - np.min(features)) / (np.max(features) - np.min(features))
     print(labels)
     print(features)
-    features_norm = (features - np.min(features)) / (np.max(features) - np.min(features))
+    print(features_norm)
     print(gasmodel.evaluate(features_norm,labels))
     performance = gasmodel.predict(features_norm)
+    print(performance)
     performance.round()
     actual = []
     for value in performance: 
@@ -239,7 +243,7 @@ def fusion(cnn, ann):
     finalmodel.compile(loss="mean_absolute_percentage_error", optimizer=opt)      
 
 
-train_image()
-image_test()
+train_gas()
+predict_gas()
 
 
