@@ -243,7 +243,7 @@ def fusion(cnn, ann):
     finalmodel.compile(loss="mean_absolute_percentage_error", optimizer=opt)      
 
 
-train_gas()
-predict_gas()
+train_image()
+image_test()
 
 
