@@ -17,6 +17,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
 
 
 
@@ -121,6 +122,8 @@ def image_test():
             actual.append(1)
         else:
             actual.append(0)
+    accuracy = accuracy_score(labels, actual)
+    print('Accuracy: %f' % accuracy)
     precision = precision_score(labels, actual)
     print('Precision: %f' % precision)
     recall = recall_score(labels, actual)
@@ -134,17 +137,19 @@ gasmodel = keras.Sequential([keras.layers.Dense(128, activation = 'relu', input_
                          keras.layers.Dense(1,activation='sigmoid')])
 
 def train_gas():
-    data = pd.read_csv("/Users/wzhang/Downloads/data4.csv")
+    data = pd.read_csv("/Users/Eddie/Downloads/data5 (1).csv")
     labels = data['Gas']
     features = data.drop(columns=['Gas'])
     features_norm = (features - np.min(features)) / (np.max(features) - np.min(features))
     print(features_norm)
     features_train, features_test, labels_train, labels_test = train_test_split(features_norm, labels, test_size=0.2)
     features_train, features_validation, labels_train, labels_validation = train_test_split(features_train, labels_train, test_size=0.2)
-    gasmodel.compile(optimizer='adam',
+    gasmodel.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = 0.01),
              loss=tf.keras.losses.binary_crossentropy,
              metrics=['acc'])
-    history = gasmodel.fit(features_train, labels_train, epochs=20, validation_data=(features_validation, labels_validation))
+    history = gasmodel.fit(features_train, labels_train, epochs=72, validation_data=(features_validation, labels_validation))
+
+    gasmodel.save('/Users/Eddie/Downloads/savetest')
 
     history_dict = history.history
     history_dict.keys()
@@ -171,8 +176,12 @@ def train_gas():
     fig2.suptitle('Accuracy', fontsize = 20)
     plt.legend(loc = "upper left")
     plt.show()
+    gasdata = pd.read_csv("/Users/eddie/Downloads/Gas Sensors Data - Sheet1 (3) (1).csv")
+    result = gasdata['Gas']
+    gasdata = gasdata.drop(columns=['Gas'])
+    gasdata= (gasdata - np.min(gasdata)) / (np.max(gasdata) - np.min(gasdata))
     print(gasmodel.evaluate(features_test,labels_test))
-    performance = gasmodel.predict(features_test)
+    performance = gasmodel.predict(gasdata)
     performance.round()
     actual = []
     for value in performance: 
@@ -193,11 +202,13 @@ def train_gas():
     plt.xlabel('Actual',fontsize=13)
     plt.title('Confusion Matrix',fontsize=17)
     plt.show()
-    precision = precision_score(labels_test, actual)
+    accuracy = accuracy_score(result, actual)
+    print('Accuracy: %f' % accuracy)
+    precision = precision_score(result, actual)
     print('Precision: %f' % precision)
-    recall = recall_score(labels_test, actual)
+    recall = recall_score(result, actual)
     print('Recall: %f' % recall)
-    f1 = f1_score(labels_test, actual)
+    f1 = f1_score(result, actual)
     print('F1 score: %f' % f1)
 
 def predict_gas():
@@ -244,6 +255,5 @@ def fusion(cnn, ann):
 
 
 
-image_test()
-
+train_gas()
 
